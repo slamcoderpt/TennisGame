@@ -371,6 +371,18 @@ func test_tap_serve_still_works() -> void:
 	check(sim.ball.in_play, "a plain tap must still serve the ball")
 	check(sim.ball.vel.y > 0.0, "the tap serve travels to the far side")
 	check(sim.is_serve, "the tap serve is flagged as a serve")
+
+func test_serve_speed_follows_toss_timing_not_hold_time() -> void:
+	# Release at the apex (~24 ticks) vs a LATE release (~44 ticks) after the toss has
+	# fallen. The late release was HELD LONGER (more charge, under the old serve it would
+	# be faster) but is worse timing, so it must serve SLOWER. This proves serve speed
+	# tracks toss height/timing, not hold duration.
+	var apex := CourtSim.new()
+	_toss_and_release_at(apex, 24)
+	var late := CourtSim.new()
+	_toss_and_release_at(late, 44)
+	check(apex.ball.in_play and late.ball.in_play, "both serves should be live")
+	check(apex.ball.vel.length() > late.ball.vel.length() + 1.0, "apex timing must serve faster than a late (longer-held) release")
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -473,7 +485,7 @@ func _serve_contact(i: int, input) -> bool:
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Expected: `56 passed, 0 failed` (53 + 3), exit 0. Prior serve tests stay green: a tap serve (`is_tossing` false) uses `SERVE_TAP_QUALITY` and still clears the net and lands in; the receiver still cannot return before the bounce (`is_serve` set); own-side landings still fault; `test_aim_follows_stick` still gets a negative `vel.x` for a left stick (cross-court from the deuce spot is already negative, and the nudge only reinforces it). If any prior test regresses, stop and report.
+Expected: `57 passed, 0 failed` (53 + 4), exit 0. Prior serve tests stay green: a tap serve (`is_tossing` false) uses `SERVE_TAP_QUALITY` and still clears the net and lands in; the receiver still cannot return before the bounce (`is_serve` set); own-side landings still fault; `test_aim_follows_stick` still gets a negative `vel.x` for a left stick (cross-court from the deuce spot is already negative, and the nudge only reinforces it). If any prior test regresses, stop and report.
 
 - [ ] **Step 5: Commit**
 
@@ -493,7 +505,7 @@ git commit -m "feat: toss-timed serve contact with cross-court aim"
 - [ ] **Step 1: Full suite + boot**
 
 Run: `& "<godot>" --headless --path . -s res://tests/run_tests.gd`
-Expected: `56 passed, 0 failed`, exit 0.
+Expected: `57 passed, 0 failed`, exit 0.
 
 Run: `& "<godot>" --path . --quit-after 180 2>&1`
 Expected: no `SCRIPT ERROR` / `Parse Error` / `Cannot call` lines.
