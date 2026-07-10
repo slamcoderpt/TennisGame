@@ -40,7 +40,7 @@ func _draw() -> void:
 func _draw_reach(p) -> void:
 	var b = sim.ball
 	# Mirror the sim's _try_hit conditions so the green light never lies.
-	var incoming: bool = not b.in_play or signf(b.vel.y) == float(p.side)
+	var incoming: bool = not b.in_play or (signf(b.vel.y) == float(p.side) and not sim.is_serve)
 	var hittable: bool = incoming and b.pos.distance_to(p.pos) <= CourtSim.REACH and b.height <= CourtSim.MAX_HIT_HEIGHT
 	var color := REACH_OK_COLOR if hittable else REACH_WAIT_COLOR
 	var pts := PackedVector2Array()
