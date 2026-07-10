@@ -101,3 +101,21 @@ func test_aim_follows_stick() -> void:
 	frames[0].move = Vector2(-1, 0)
 	sim.tick(frames)
 	check(sim.ball.vel.x < 0.0, "stick held left should aim the shot left")
+
+func _scripted(i: int) -> Array:
+	var p0 := InputFrame.new()
+	p0.move = Vector2(sin(i * 0.05), cos(i * 0.07))
+	p0.hit_pressed = i % 30 == 0
+	var p1 := InputFrame.new()
+	p1.move = Vector2(cos(i * 0.03), 0.0)
+	p1.hit_pressed = i % 45 == 0
+	return [p0, p1]
+
+func test_determinism() -> void:
+	var a := CourtSim.new()
+	var b := CourtSim.new()
+	for i in 600:
+		a.tick(_scripted(i))
+		b.tick(_scripted(i))
+	check(a.ball.pos == b.ball.pos and a.ball.height == b.ball.height, "ball state must match exactly")
+	check(a.players[0].pos == b.players[0].pos and a.players[1].pos == b.players[1].pos, "player state must match exactly")
