@@ -7,7 +7,7 @@ const JOY_RADIUS := 110.0
 var joy_id := -1
 var joy_origin := Vector2.ZERO
 var joy_current := Vector2.ZERO
-var touch_hit := false
+var hit_latched := false       # set on the press event, consumed once by the sim tick
 
 func _input(event: InputEvent) -> void:
 	var half := get_viewport_rect().size.x / 2.0
@@ -19,13 +19,15 @@ func _input(event: InputEvent) -> void:
 				joy_current = event.position
 				queue_redraw()
 			elif event.position.x >= half:
-				touch_hit = true
+				hit_latched = true
 		elif event.index == joy_id:
 			joy_id = -1
 			queue_redraw()
 	elif event is InputEventScreenDrag and event.index == joy_id:
 		joy_current = event.position
 		queue_redraw()
+	elif event.is_action_pressed("ui_accept"):
+		hit_latched = true
 
 func consume_frame():
 	var f := InputFrame.new()
@@ -36,8 +38,8 @@ func consume_frame():
 		if v.length() > 1.0:
 			v = v.normalized()
 		f.move = Vector2(v.x, -v.y)
-	f.hit_pressed = Input.is_action_just_pressed("ui_accept") or touch_hit
-	touch_hit = false
+	f.hit_pressed = hit_latched
+	hit_latched = false
 	return f
 
 func _draw() -> void:

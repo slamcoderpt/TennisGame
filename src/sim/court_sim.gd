@@ -12,8 +12,9 @@ const GRAVITY := 22.0
 const RESTITUTION := 0.75
 const MAX_BOUNCES := 4
 const PLAYER_SPEED := 9.0
-const REACH := 1.6
+const REACH := 2.0
 const MAX_HIT_HEIGHT := 3.0
+const HIT_BUFFER_TICKS := 8     # a press stays armed this many ticks (forgives early swings)
 const SHOT_SPEED := 16.0
 const SHOT_LAUNCH := 7.0
 const AIM_MAX_X := HALF_WIDTH - 1.0
@@ -52,7 +53,11 @@ func tick(inputs: Array) -> void:
 	_update_ball()
 	for i in 2:
 		if inputs[i].hit_pressed:
-			_try_hit(players[i], inputs[i])
+			players[i].hit_buffer = HIT_BUFFER_TICKS
+		if players[i].hit_buffer > 0:
+			players[i].hit_buffer -= 1
+			if _try_hit(players[i], inputs[i]):
+				players[i].hit_buffer = 0
 
 func _move_player(p, input) -> void:
 	var m: Vector2 = input.move
@@ -80,12 +85,12 @@ func _update_ball() -> void:
 	if out_x or out_y or ball.bounce_count >= MAX_BOUNCES:
 		reset_ball()
 
-func _try_hit(p, input) -> void:
+func _try_hit(p, input) -> bool:
 	var incoming: bool = not ball.in_play or signf(ball.vel.y) == float(p.side)
 	if not incoming:
-		return
+		return false
 	if ball.pos.distance_to(p.pos) > REACH or ball.height > MAX_HIT_HEIGHT:
-		return
+		return false
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
 	ball.vel = (target - ball.pos).normalized() * SHOT_SPEED
@@ -93,3 +98,4 @@ func _try_hit(p, input) -> void:
 	ball.height = maxf(ball.height, 0.3)
 	ball.bounce_count = 0
 	ball.in_play = true
+	return true

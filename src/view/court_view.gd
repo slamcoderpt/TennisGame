@@ -10,12 +10,20 @@ const P1_COLOR := Color("457b9d")
 const P2_COLOR := Color("e63946")
 const BALL_COLOR := Color("ffd166")
 const SHADOW_COLOR := Color(0, 0, 0, 0.35)
+const REACH_OK_COLOR := Color(0.2, 1.0, 0.2, 0.8)    # ball is hittable now
+const REACH_WAIT_COLOR := Color(1.0, 1.0, 0.2, 0.4)  # in range but not yet hittable
 
 var sim = null
+var debug_reach := true        # toggle with the D key; shows the near player's hit zone
 
 func render(s) -> void:
 	sim = s
 	queue_redraw()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_D:
+		debug_reach = not debug_reach
+		queue_redraw()
 
 func _draw() -> void:
 	if sim == null:
@@ -24,8 +32,22 @@ func _draw() -> void:
 	_draw_court()
 	_draw_player(sim.players[1], P2_COLOR, f)
 	_draw_net()
+	if debug_reach:
+		_draw_reach(sim.players[0])
 	_draw_ball(f)
 	_draw_player(sim.players[0], P1_COLOR, f)
+
+func _draw_reach(p) -> void:
+	var b = sim.ball
+	var hittable: bool = b.pos.distance_to(p.pos) <= CourtSim.REACH and b.height <= CourtSim.MAX_HIT_HEIGHT
+	var color := REACH_OK_COLOR if hittable else REACH_WAIT_COLOR
+	var pts := PackedVector2Array()
+	var n := 32
+	for i in n + 1:
+		var a := TAU * i / n
+		var court_pt: Vector2 = p.pos + Vector2(cos(a), sin(a)) * CourtSim.REACH
+		pts.append(Proj.to_screen(court_pt))
+	draw_polyline(pts, color, 2.0)
 
 func _draw_court() -> void:
 	var hw := CourtSim.HALF_WIDTH

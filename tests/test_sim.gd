@@ -119,3 +119,34 @@ func test_determinism() -> void:
 		b.tick(_scripted(i))
 	check(a.ball.pos == b.ball.pos and a.ball.height == b.ball.height, "ball state must match exactly")
 	check(a.players[0].pos == b.players[0].pos and a.players[1].pos == b.players[1].pos, "player state must match exactly")
+
+func test_hit_buffer_forgives_early_press() -> void:
+	var sim := CourtSim.new()
+	sim.players[0].pos = Vector2(0.0, -9.0)
+	sim.ball.in_play = true
+	sim.ball.pos = Vector2(0.0, -6.5)      # ~2.5 units away — just out of REACH
+	sim.ball.vel = Vector2(0.0, -12.0)     # approaching the near player
+	sim.ball.height = 1.0
+	sim.ball.v_height = 0.0
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	sim.tick(frames)                       # press while still out of reach
+	check(sim.ball.vel.y < 0.0, "ball should not be hit yet on the early press tick")
+	for i in 6:
+		sim.tick(_idle())                  # no new press; the buffered swing should connect
+	check(sim.ball.vel.y > 0.0, "buffered swing should connect as the ball enters reach")
+
+func test_hit_buffer_expires() -> void:
+	var sim := CourtSim.new()
+	sim.players[0].pos = Vector2(0.0, -9.0)
+	sim.ball.in_play = true
+	sim.ball.pos = Vector2(0.0, -6.6)      # out of REACH, approaching very slowly
+	sim.ball.vel = Vector2(0.0, -1.5)      # reaches the player only long after the buffer expires
+	sim.ball.height = 1.0
+	sim.ball.v_height = 4.0                # stays airborne past the assertion, no early bounce
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	sim.tick(frames)
+	for i in 18:
+		sim.tick(_idle())                  # buffer (8 ticks) expires before the ball arrives
+	check(sim.ball.vel.y < 0.0, "an expired buffer must not hit a ball that arrives late")
