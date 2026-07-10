@@ -662,7 +662,7 @@ Replace with:
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Expected: `46 passed, 0 failed` (41 + 5), exit 0. Existing tests still green (meter starts at 0, no special fires from a plain tap).
+Expected: `45 passed, 0 failed` (41 + 4), exit 0. Existing tests still green (meter starts at 0, no special fires from a plain tap).
 
 - [ ] **Step 5: Commit**
 
@@ -857,7 +857,7 @@ func _draw_meter(x: float, value: float) -> void:
 
 - [ ] **Step 4: Run tests and clean boot**
 
-Run the harness. Expected: `47 passed, 0 failed` (46 + 1), exit 0.
+Run the harness. Expected: `46 passed, 0 failed` (45 + 1), exit 0.
 
 Run: `& "<godot>" --path . --quit-after 180 2>&1`
 Expected: no `SCRIPT ERROR` / `Parse Error` / `Cannot call` lines.
@@ -994,7 +994,7 @@ func _draw() -> void:
 
 - [ ] **Step 4: Run tests and clean boot**
 
-Run the harness. Expected: `49 passed, 0 failed` (47 + 2), exit 0.
+Run the harness. Expected: `48 passed, 0 failed` (46 + 2), exit 0.
 
 Run: `& "<godot>" --path . --quit-after 180 2>&1`
 Expected: no `SCRIPT ERROR` / `Parse Error` / `Cannot call`. A human check happens next.
@@ -1015,7 +1015,7 @@ git commit -m "feat: billboarded character sprite pipeline with placeholder art"
 
 - [ ] **Step 1: Full suite + boot**
 
-Run the harness. Expected: `49 passed, 0 failed`, exit 0.
+Run the harness. Expected: `48 passed, 0 failed`, exit 0.
 Run: `& "<godot>" --path . --quit-after 180 2>&1` — clean, no script errors.
 
 - [ ] **Step 2: Manual check (controller/human)**
