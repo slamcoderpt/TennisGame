@@ -103,6 +103,7 @@ func tick(inputs: Array) -> void:
 		if pause_ticks == 0:
 			reset_for_serve()
 		return
+	_update_toss(inputs)
 	_update_ball()
 	for i in 2:
 		var input = inputs[i]
@@ -129,6 +130,20 @@ func _move_player(p, input) -> void:
 		p.pos.y = clampf(p.pos.y, -HALF_LENGTH, -0.5)
 	else:
 		p.pos.y = clampf(p.pos.y, 0.5, HALF_LENGTH)
+
+func _update_toss(inputs) -> void:
+	if ball.in_play:
+		return
+	if inputs[server].hit_held and not is_tossing:
+		is_tossing = true
+		ball.v_height = TOSS_VELOCITY
+	if is_tossing:
+		ball.v_height -= GRAVITY * TICK
+		ball.height += ball.v_height * TICK
+		if ball.height <= 0.0:
+			ball.height = 0.0
+			is_tossing = false
+			_serve_fault()
 
 func _check_net(prev_y: float) -> void:
 	if ball.height >= NET_HEIGHT:

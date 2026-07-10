@@ -24,3 +24,20 @@ func test_center_server_can_still_reach_the_serve() -> void:
 	var sim := CourtSim.new()
 	var dist: float = sim.ball.pos.distance_to(sim.players[0].pos)
 	check(dist <= CourtSim.REACH, "center server must reach the offset serve spot (dist=%s)" % dist)
+
+func test_toss_rises_then_falls() -> void:
+	var sim := CourtSim.new()
+	var start: float = sim.ball.height
+	var peak := start
+	for i in 60:
+		sim.tick([_held(), InputFrame.new()])
+		peak = maxf(peak, sim.ball.height)
+	check(peak > start + 0.5, "the toss must rise well above the rest height")
+	check(sim.ball.height < peak, "the toss must come back down from its peak")
+
+func test_missed_toss_is_a_fault() -> void:
+	var sim := CourtSim.new()
+	# hold and never release: the toss falls to the ground untouched -> fault
+	for i in 120:
+		sim.tick([_held(), InputFrame.new()])
+	check(sim.serve_faults >= 1, "a toss that lands untouched must be a serve fault")
