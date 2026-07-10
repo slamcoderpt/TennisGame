@@ -36,6 +36,7 @@ func _draw() -> void:
 		_draw_reach(sim.players[0])
 	_draw_ball(f)
 	_draw_player(sim.players[0], P1_COLOR, f)
+	_draw_charge(sim.players[0])
 
 func _draw_reach(p) -> void:
 	var b = sim.ball
@@ -89,3 +90,12 @@ func _draw_ball(f: float) -> void:
 	var s := Proj.scale_at(pos.y)
 	draw_circle(Proj.to_screen(pos), 0.25 * s, SHADOW_COLOR)
 	draw_circle(Proj.to_screen(pos, h), 0.22 * s, BALL_COLOR)
+
+func _draw_charge(p) -> void:
+	if p.charge <= 0.0:
+		return
+	var center := Proj.to_screen(p.pos)
+	var s := Proj.scale_at(p.pos.y)
+	var r := 1.1 * s
+	var col := Color(1.0, 0.85, 0.2) if p.charge >= 1.0 else Color(1.0, 1.0, 1.0, 0.8)
+	draw_arc(center, r, -PI / 2.0, -PI / 2.0 + TAU * p.charge, 32, col, 4.0)

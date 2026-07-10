@@ -48,6 +48,8 @@ var last_hitter := -1           # -1 = nobody has hit since the last reset
 var pause_ticks := 0
 var last_event := ""            # transient HUD message ("FAULT", "OUT!", ...)
 var meter := [0.0, 0.0]         # 0..1 super meter per player; persists across points, not matches
+var hit_count := 0              # monotonic swing counter; the view reads it to trigger juice
+var hit_strength := 0.0         # power of the most recent swing (0..1, or >1 for a special)
 
 func _init() -> void:
 	players[0].side = -1
@@ -231,6 +233,8 @@ func _try_hit(i: int, input) -> bool:
 	ball.bounce_count = 0
 	ball.in_play = true
 	last_hitter = i
+	hit_count += 1
+	hit_strength = 2.0 if special else p.charge
 	p.charge = 0.0
 	if serving and not special:
 		is_serve = true
