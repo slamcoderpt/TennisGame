@@ -8,9 +8,10 @@ Retro pixel-art arcade tennis (Windjammers pace) for Android/iOS. Godot 4.x.
 - Run tests: `godot --headless --path . -s res://tests/run_tests.gd`
 
 Desktop controls (dev): arrows move, hold Space to charge then release to hit
-(stick back = lob, forward = drop). Touch: left half = floating joystick, right
-half = hold-to-charge hit. Mouse emulates touch. Press D to toggle the debug
-reach ring.
+(stick back = lob, forward = drop). Serving, hold Space to toss the ball and
+release near the top for a fast cross-court serve. Touch: left half = floating
+joystick, right half = hold-to-charge hit. Mouse emulates touch. Press D to
+toggle the debug reach ring.
 
 Layout: `src/sim/` pure deterministic game logic (never touches Nodes),
 `src/view/` projection + rendering, `src/input/` InputFrame producers,

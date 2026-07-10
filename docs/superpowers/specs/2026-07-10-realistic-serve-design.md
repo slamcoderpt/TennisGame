@@ -56,7 +56,7 @@ The rally charge path (`hit_held` builds `charge`, release fires a charged groun
 - **Missed toss faults:** holding then never releasing until the ball lands increments `serve_faults` (and a second missed toss scores for the receiver).
 - **Deuce/ad alternation:** across successive points in a game, the served ball's x alternates between the deuce and ad spots.
 - **Cross-court aim:** a serve from the deuce spot travels toward the opposite-x half.
-- **Backward compatibility:** all 48 existing tests pass unchanged (a `hit_pressed` tap still serves the ball to the far side; own-side poked landings still fault).
+- **Backward compatibility:** the tap-serve path is preserved (a `hit_pressed` tap still serves to the far side; own-side poked landings still fault). Three tests that exercised charge/special by holding on the serve are repointed to an in-play rally ball, since the serve is no longer charge-powered; the mechanics remain fully tested.
 - **Determinism canary** stays green.
 
 ## Deferred / Future
