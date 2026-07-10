@@ -33,6 +33,10 @@ const TARGET_DEPTH := HALF_LENGTH - 3.0
 const SERVE_DEPTH := 8.0
 const SERVE_HEIGHT := 1.2
 const POINT_PAUSE_TICKS := 45   # short freeze after a point so the result reads
+const METER_PER_HIT := 0.12     # meter gained by the hitter each swing
+const METER_PER_POINT := 0.25   # meter gained by the winner of a point
+const SPECIAL_SPEED := 30.0     # special shot is faster than a normal full charge
+const SPECIAL_SWERVE := 3.0     # radians/sec the special ball curves
 
 var ball := BallState.new()
 var players := [PlayerState.new(), PlayerState.new()]
@@ -43,6 +47,7 @@ var is_serve := false           # true from the serve hit until its first legal 
 var last_hitter := -1           # -1 = nobody has hit since the last reset
 var pause_ticks := 0
 var last_event := ""            # transient HUD message ("FAULT", "OUT!", ...)
+var meter := [0.0, 0.0]         # 0..1 super meter per player; persists across points, not matches
 
 func _init() -> void:
 	players[0].side = -1
@@ -62,6 +67,7 @@ func reset_for_serve() -> void:
 	ball.v_height = 0.0
 	ball.bounce_count = 0
 	ball.in_play = false
+	ball.swerve = 0.0
 	last_hitter = -1
 	is_serve = false
 	for p in players:
@@ -120,6 +126,8 @@ func _check_net(prev_y: float) -> void:
 func _update_ball() -> void:
 	if not ball.in_play:
 		return
+	if ball.swerve != 0.0:
+		ball.vel = ball.vel.rotated(ball.swerve * TICK)
 	var prev_y := ball.pos.y
 	ball.pos += ball.vel * TICK
 	_check_net(prev_y)
@@ -169,6 +177,7 @@ func _serve_fault() -> void:
 		_freeze_ball()
 
 func _end_point(winner: int, event: String) -> void:
+	meter[winner] = minf(1.0, meter[winner] + METER_PER_POINT)
 	var games_before: int = score.games[0] + score.games[1]
 	score.point_won_by(winner)
 	if score.games[0] + score.games[1] > games_before:
@@ -207,15 +216,23 @@ func _try_hit(i: int, input) -> bool:
 		depth = DROP_DEPTH
 		speed = DROP_SPEED
 		launch = DROP_LAUNCH
+	var special: bool = meter[i] >= 1.0 and p.charge >= 0.9
+	if special:
+		speed = SPECIAL_SPEED
+		meter[i] = 0.0
+		last_event = "SPECIAL!"
+	else:
+		meter[i] = minf(1.0, meter[i] + METER_PER_HIT)
 	var target := Vector2(aim_x, -p.side * depth)
 	ball.vel = (target - ball.pos).normalized() * speed
 	ball.v_height = launch
 	ball.height = maxf(ball.height, 0.3)
+	ball.swerve = SPECIAL_SWERVE if special else 0.0
 	ball.bounce_count = 0
 	ball.in_play = true
 	last_hitter = i
 	p.charge = 0.0
-	if serving:
+	if serving and not special:
 		is_serve = true
 		last_event = ""
 	return true
