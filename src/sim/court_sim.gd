@@ -32,7 +32,6 @@ const AIM_MAX_X := HALF_WIDTH - 1.0
 const TARGET_DEPTH := HALF_LENGTH - 3.0
 const SERVE_DEPTH := 8.0
 const SERVE_HEIGHT := 0.4        # low "in-hand" rest height before the toss
-const SERVE_X := 1.5             # deuce/ad offset; small enough that a center server still reaches it
 const TOSS_VELOCITY := 9.0       # upward toss speed (~0.8s airtime, apex ~2.2 units above rest)
 const IDEAL_CONTACT_HEIGHT := 2.2  # best timing sits at the toss apex
 const CONTACT_WINDOW := 1.8      # generous timing window around the ideal contact height
@@ -41,7 +40,6 @@ const SERVE_SPEED_MIN := 14.0
 const SERVE_SPEED_MAX := 22.0
 const SERVE_LAUNCH := 7.0        # upward velocity imparted to the served ball
 const SERVE_TAP_QUALITY := 0.5   # a no-toss tap serves at this default quality
-const SERVE_AIM_NUDGE := 1.0     # how far the stick can shift the cross-court serve target
 const POINT_PAUSE_TICKS := 45   # short freeze after a point so the result reads
 const METER_PER_HIT := 0.12     # meter gained by the hitter each swing
 const METER_PER_POINT := 0.25   # meter gained by the winner of a point
@@ -72,10 +70,7 @@ func _init() -> void:
 	reset_for_serve()
 
 func reset_for_serve() -> void:
-	var s := int(players[server].side)
-	var ad: bool = (score.points[0] + score.points[1]) % 2 == 1
-	var serve_x := SERVE_X * (float(s) if ad else -float(s))
-	ball.pos = Vector2(serve_x, SERVE_DEPTH * float(s))
+	ball.pos = players[server].pos
 	ball.prev_pos = ball.pos
 	ball.height = SERVE_HEIGHT
 	ball.prev_height = SERVE_HEIGHT
@@ -134,6 +129,8 @@ func _move_player(p, input) -> void:
 func _update_toss(inputs) -> void:
 	if ball.in_play:
 		return
+	if not is_tossing:
+		ball.pos = players[server].pos      # the ball stays in the server's hand until the toss
 	if inputs[server].hit_held and not is_tossing:
 		is_tossing = true
 		ball.v_height = TOSS_VELOCITY
@@ -280,7 +277,7 @@ func _serve_contact(i: int, input) -> bool:
 			return false
 		quality = clampf(1.0 - absf(ball.height - IDEAL_CONTACT_HEIGHT) / CONTACT_WINDOW, 0.0, 1.0)
 	var speed := lerpf(SERVE_SPEED_MIN, SERVE_SPEED_MAX, quality)
-	var aim_x := clampf(-ball.pos.x + clampf(input.move.x, -1.0, 1.0) * SERVE_AIM_NUDGE, -AIM_MAX_X, AIM_MAX_X)
+	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
 	ball.vel = (target - ball.pos).normalized() * speed
 	ball.v_height = SERVE_LAUNCH
