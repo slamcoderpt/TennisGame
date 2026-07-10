@@ -58,6 +58,10 @@ var last_event := ""            # transient HUD message ("FAULT", "OUT!", ...)
 var meter := [0.0, 0.0]         # 0..1 super meter per player; persists across points, not matches
 var hit_count := 0              # monotonic swing counter; the view reads it to trigger juice
 var hit_strength := 0.0         # power of the most recent swing (0..1, or >1 for a special)
+var bounce_speed := 1.0         # court surface: horizontal ball speed kept on a bounce
+var bounce_height := 1.0        # court surface: restitution multiplier
+var move_response := 1.0        # court surface: how fast player velocity follows input (1.0 = instant)
+var move_speed := 1.0           # court surface: player max-speed multiplier
 
 func _init() -> void:
 	players[0].side = -1
@@ -114,11 +118,14 @@ func tick(inputs: Array) -> void:
 
 func _move_player(p, input) -> void:
 	if input.hit_held:
+		p.move_vel = Vector2.ZERO
 		return                  # charging locks the player in place
 	var m: Vector2 = input.move
 	if m.length() > 1.0:
 		m = m.normalized()
-	p.pos += m * PLAYER_SPEED * p.speed * TICK
+	var target: Vector2 = m * PLAYER_SPEED * p.speed * move_speed
+	p.move_vel = p.move_vel.lerp(target, move_response)
+	p.pos += p.move_vel * TICK
 	p.pos.x = clampf(p.pos.x, -HALF_WIDTH, HALF_WIDTH)
 	if p.side < 0:
 		p.pos.y = clampf(p.pos.y, -HALF_LENGTH, -0.5)
@@ -163,7 +170,8 @@ func _update_ball() -> void:
 	ball.height += ball.v_height * TICK
 	if ball.height <= 0.0 and ball.v_height < 0.0:
 		ball.height = 0.0
-		ball.v_height = -ball.v_height * RESTITUTION
+		ball.v_height = -ball.v_height * RESTITUTION * bounce_height
+		ball.vel *= bounce_speed
 		ball.bounce_count += 1
 		_judge_bounce()
 	var out_x := absf(ball.pos.x) > HALF_WIDTH + OUT_MARGIN

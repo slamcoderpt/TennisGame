@@ -15,6 +15,7 @@ const TEST_SCRIPTS := [
 	"res://tests/test_serve.gd",
 	"res://tests/test_stats.gd",
 	"res://tests/test_roster.gd",
+	"res://tests/test_surface.gd",
 ]
 
 func _init() -> void:
