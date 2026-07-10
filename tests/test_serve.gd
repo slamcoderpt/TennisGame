@@ -76,3 +76,15 @@ func test_tap_serve_still_works() -> void:
 	check(sim.ball.in_play, "a plain tap must still serve the ball")
 	check(sim.ball.vel.y > 0.0, "the tap serve travels to the far side")
 	check(sim.is_serve, "the tap serve is flagged as a serve")
+
+func test_serve_speed_follows_toss_timing_not_hold_time() -> void:
+	# Release at the apex (~24 ticks) vs a LATE release (~44 ticks) after the toss has
+	# fallen. The late release was HELD LONGER (more charge, under the old serve it would
+	# be faster) but is worse timing, so it must serve SLOWER. This proves serve speed
+	# tracks toss height/timing, not hold duration.
+	var apex := CourtSim.new()
+	_toss_and_release_at(apex, 24)
+	var late := CourtSim.new()
+	_toss_and_release_at(late, 44)
+	check(apex.ball.in_play and late.ball.in_play, "both serves should be live")
+	check(apex.ball.vel.length() > late.ball.vel.length() + 1.0, "apex timing must serve faster than a late (longer-held) release")
