@@ -228,12 +228,12 @@ func _try_hit(i: int, input) -> bool:
 	var p = players[i]
 	if ball.in_play and is_serve:
 		return false               # the serve must bounce before it can be returned
-	var incoming: bool = not ball.in_play or signf(ball.vel.y) == float(p.side)
-	if not incoming:
-		return false
+	if not ball.in_play:
+		return _serve_contact(i, input)
+	if signf(ball.vel.y) != float(p.side):
+		return false               # ball is not incoming toward this player
 	if ball.pos.distance_to(p.pos) > REACH or ball.height > MAX_HIT_HEIGHT:
 		return false
-	var serving: bool = not ball.in_play
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var depth := TARGET_DEPTH
 	var speed := lerpf(SHOT_SPEED_MIN, SHOT_SPEED_MAX, p.charge)
@@ -266,7 +266,33 @@ func _try_hit(i: int, input) -> bool:
 	hit_count += 1
 	hit_strength = 2.0 if special else p.charge
 	p.charge = 0.0
-	if serving and not special:
-		is_serve = true
-		last_event = ""
+	return true
+
+func _serve_contact(i: int, input) -> bool:
+	var p = players[i]
+	if ball.pos.distance_to(p.pos) > REACH:
+		return false
+	var quality := SERVE_TAP_QUALITY
+	if is_tossing:
+		if ball.height < MIN_CONTACT_HEIGHT:
+			is_tossing = false
+			_serve_fault()
+			return false
+		quality = clampf(1.0 - absf(ball.height - IDEAL_CONTACT_HEIGHT) / CONTACT_WINDOW, 0.0, 1.0)
+	var speed := lerpf(SERVE_SPEED_MIN, SERVE_SPEED_MAX, quality)
+	var aim_x := clampf(-ball.pos.x + clampf(input.move.x, -1.0, 1.0) * SERVE_AIM_NUDGE, -AIM_MAX_X, AIM_MAX_X)
+	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
+	ball.vel = (target - ball.pos).normalized() * speed
+	ball.v_height = SERVE_LAUNCH
+	ball.height = maxf(ball.height, 0.4)
+	ball.swerve = 0.0
+	ball.bounce_count = 0
+	ball.in_play = true
+	is_tossing = false
+	is_serve = true
+	last_hitter = i
+	hit_count += 1
+	hit_strength = quality
+	meter[i] = minf(1.0, meter[i] + METER_PER_HIT)
+	last_event = ""
 	return true
