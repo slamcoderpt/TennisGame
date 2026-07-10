@@ -3,6 +3,7 @@ extends SceneTree
 const TEST_SCRIPTS := [
 	"res://tests/test_smoke.gd",
 	"res://tests/test_sim.gd",
+	"res://tests/test_projection.gd",
 ]
 
 func _init() -> void:
