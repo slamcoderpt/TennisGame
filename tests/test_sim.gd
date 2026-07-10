@@ -45,3 +45,23 @@ func test_dead_ball_resets() -> void:
 	sim.ball.height = 2.0
 	_tick_n(sim, 600)
 	check(not sim.ball.in_play, "ball should reset to serve state after bouncing out")
+
+func test_player_moves_and_is_clamped() -> void:
+	var sim := CourtSim.new()
+	var frames := _idle()
+	frames[0].move = Vector2(0, 1)
+	for i in 600:
+		sim.tick(frames)
+	check(sim.players[0].pos.y == -0.5, "bottom player must stop before the net")
+	frames[0].move = Vector2(-1, 0)
+	for i in 600:
+		sim.tick(frames)
+	check(sim.players[0].pos.x == -CourtSim.HALF_WIDTH, "player must stop at the side line")
+
+func test_diagonal_not_faster() -> void:
+	var sim := CourtSim.new()
+	var frames := _idle()
+	frames[0].move = Vector2(1, 1)
+	sim.tick(frames)
+	var moved: float = sim.players[0].pos.distance_to(Vector2(0, -9))
+	check(absf(moved - CourtSim.PLAYER_SPEED * CourtSim.TICK) < 0.001, "diagonal speed must equal straight speed")
