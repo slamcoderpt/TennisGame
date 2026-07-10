@@ -17,7 +17,9 @@ const PLAYER_SPEED := 9.0
 const REACH := 2.0
 const MAX_HIT_HEIGHT := 3.0
 const HIT_BUFFER_TICKS := 8     # a press stays armed this many ticks (forgives early swings)
-const SHOT_SPEED := 16.0
+const SHOT_SPEED_MIN := 16.0    # tap speed (matches the old flat SHOT_SPEED)
+const SHOT_SPEED_MAX := 26.0    # full-charge speed
+const CHARGE_TIME := 0.6        # seconds of hold to reach full charge
 const SHOT_LAUNCH := 7.0
 const AIM_MAX_X := HALF_WIDTH - 1.0
 const TARGET_DEPTH := HALF_LENGTH - 3.0
@@ -73,14 +75,21 @@ func tick(inputs: Array) -> void:
 		return
 	_update_ball()
 	for i in 2:
-		if inputs[i].hit_pressed:
+		var input = inputs[i]
+		if input.hit_held:
+			players[i].charge = minf(1.0, players[i].charge + TICK / CHARGE_TIME)
+		if input.hit_pressed:
 			players[i].hit_buffer = HIT_BUFFER_TICKS
 		if players[i].hit_buffer > 0:
 			players[i].hit_buffer -= 1
-			if _try_hit(i, inputs[i]):
+			if _try_hit(i, input):
 				players[i].hit_buffer = 0
+		if not input.hit_held and players[i].hit_buffer == 0:
+			players[i].charge = 0.0
 
 func _move_player(p, input) -> void:
+	if input.hit_held:
+		return                  # charging locks the player in place
 	var m: Vector2 = input.move
 	if m.length() > 1.0:
 		m = m.normalized()
@@ -179,12 +188,14 @@ func _try_hit(i: int, input) -> bool:
 	var serving: bool = not ball.in_play
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
-	ball.vel = (target - ball.pos).normalized() * SHOT_SPEED
+	var speed := lerpf(SHOT_SPEED_MIN, SHOT_SPEED_MAX, p.charge)
+	ball.vel = (target - ball.pos).normalized() * speed
 	ball.v_height = SHOT_LAUNCH
 	ball.height = maxf(ball.height, 0.3)
 	ball.bounce_count = 0
 	ball.in_play = true
 	last_hitter = i
+	p.charge = 0.0
 	if serving:
 		is_serve = true
 		last_event = ""

@@ -7,7 +7,8 @@ const JOY_RADIUS := 110.0
 var joy_id := -1
 var joy_origin := Vector2.ZERO
 var joy_current := Vector2.ZERO
-var hit_latched := false       # set on the press event, consumed once by the sim tick
+var hit_touch := -1            # touch index held on the right half, -1 = none
+var _was_down := false         # hit state last frame, to detect the release edge
 
 func _input(event: InputEvent) -> void:
 	var half := get_viewport_rect().size.x / 2.0
@@ -18,16 +19,17 @@ func _input(event: InputEvent) -> void:
 				joy_origin = event.position
 				joy_current = event.position
 				queue_redraw()
-			elif event.position.x >= half:
-				hit_latched = true
-		elif event.index == joy_id:
-			joy_id = -1
-			queue_redraw()
+			elif event.position.x >= half and hit_touch == -1:
+				hit_touch = event.index
+		else:
+			if event.index == joy_id:
+				joy_id = -1
+				queue_redraw()
+			elif event.index == hit_touch:
+				hit_touch = -1
 	elif event is InputEventScreenDrag and event.index == joy_id:
 		joy_current = event.position
 		queue_redraw()
-	elif event.is_action_pressed("ui_accept"):
-		hit_latched = true
 
 func consume_frame():
 	var f := InputFrame.new()
@@ -38,8 +40,10 @@ func consume_frame():
 		if v.length() > 1.0:
 			v = v.normalized()
 		f.move = Vector2(v.x, -v.y)
-	f.hit_pressed = hit_latched
-	hit_latched = false
+	var down := Input.is_action_pressed("ui_accept") or hit_touch != -1
+	f.hit_held = down
+	f.hit_pressed = _was_down and not down
+	_was_down = down
 	return f
 
 func _draw() -> void:
