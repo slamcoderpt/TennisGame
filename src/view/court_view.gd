@@ -2,6 +2,7 @@ extends Node2D
 
 const Proj := preload("res://src/view/projection.gd")
 const CourtSim := preload("res://src/sim/court_sim.gd")
+const SpriteSheet := preload("res://src/view/sprite_sheet.gd")
 
 const COURT_COLOR := Color("2d6a4f")
 const LINE_COLOR := Color.WHITE
@@ -15,6 +16,8 @@ const REACH_WAIT_COLOR := Color(1.0, 1.0, 0.2, 0.4)  # in range but not yet hitt
 
 var sim = null
 var debug_reach := true        # toggle with the D key; shows the near player's hit zone
+var _tex := [SpriteSheet.build(P1_COLOR), SpriteSheet.build(P2_COLOR)]
+var _anim := 0.0
 
 func render(s) -> void:
 	sim = s
@@ -28,6 +31,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _draw() -> void:
 	if sim == null:
 		return
+	_anim += 0.05
 	var f := Engine.get_physics_interpolation_fraction()
 	_draw_court()
 	_draw_player(sim.players[1], P2_COLOR, f)
@@ -80,8 +84,15 @@ func _draw_player(p, color: Color, f: float) -> void:
 	var pos: Vector2 = p.prev_pos.lerp(p.pos, f)
 	var s := Proj.scale_at(pos.y)
 	var screen := Proj.to_screen(pos)
-	var size := Vector2(0.9, 1.4) * s
-	draw_rect(Rect2(screen - Vector2(size.x / 2.0, size.y), size), color)
+	var moving: bool = p.prev_pos.distance_to(p.pos) > 0.001
+	var frame := 0
+	if moving:
+		frame = int(_anim * 8.0) % 2
+	var idx := 0 if p.side < 0 else 1
+	var w := SpriteSheet.FRAME_W * s * 0.06
+	var h := SpriteSheet.FRAME_H * s * 0.06
+	var dest := Rect2(screen.x - w / 2.0, screen.y - h, w, h)
+	draw_texture_rect_region(_tex[idx], dest, SpriteSheet.frame_rect(frame))
 
 func _draw_ball(f: float) -> void:
 	var b = sim.ball
