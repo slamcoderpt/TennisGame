@@ -4,6 +4,7 @@ const TEST_SCRIPTS := [
 	"res://tests/test_smoke.gd",
 	"res://tests/test_sim.gd",
 	"res://tests/test_projection.gd",
+	"res://tests/test_ai.gd",
 ]
 
 func _init() -> void:
