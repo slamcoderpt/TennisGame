@@ -7,17 +7,22 @@ Retro pixel-art arcade tennis (Windjammers pace) for Android/iOS. Godot 4.x.
 - Run the game: `godot --path .`
 - Run tests: `godot --headless --path . -s res://tests/run_tests.gd`
 
-Desktop controls (dev): arrows move, Space hits. Touch: left half = floating
-joystick, right half = hit. Mouse emulates touch.
+Desktop controls (dev): arrows move, hold Space to charge then release to hit
+(stick back = lob, forward = drop). Touch: left half = floating joystick, right
+half = hold-to-charge hit. Mouse emulates touch. Press D to toggle the debug
+reach ring.
 
 Layout: `src/sim/` pure deterministic game logic (never touches Nodes),
 `src/view/` projection + rendering, `src/input/` InputFrame producers,
 `src/ai/` AI opponents (also InputFrame producers), `tests/` headless tests.
 
-## Milestone 2 status: The Point
+## Milestone 3 status: The Game
 
-Full tennis points: serves with faults and double faults, net collision,
-in/out judgment, double-bounce rule, 15/30/40/deuce/advantage scoring,
-first to 3 games, HUD with score and messages. Hit after match point to
-restart. Milestone 3 adds charge shots, lob/drop, the super meter, sprites
-and the game-feel pass.
+Hold to charge shots (movement locks while winding up); release with the stick
+back for a lob or forward for a drop. A super meter fills through rallies and
+points; a full-meter full-charge release fires a swerving special. Game feel:
+charge ring, hit-pause, screen shake. Players render through a billboarded,
+depth-scaled sprite pipeline (placeholder art — drop real PNGs into
+src/view/sprite_sheet.gd's build()). Deferred: serve power-timing meter,
+service boxes, per-character unique specials. Next: roster, courts with
+gameplay rules, arcade ladder, menus, mobile builds.
