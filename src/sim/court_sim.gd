@@ -20,6 +20,13 @@ const HIT_BUFFER_TICKS := 8     # a press stays armed this many ticks (forgives 
 const SHOT_SPEED_MIN := 16.0    # tap speed (matches the old flat SHOT_SPEED)
 const SHOT_SPEED_MAX := 26.0    # full-charge speed
 const CHARGE_TIME := 0.6        # seconds of hold to reach full charge
+const LOB_SPEED := 10.0          # slow, high, deep
+const LOB_LAUNCH := 12.0
+const LOB_DEPTH := HALF_LENGTH - 1.0
+const DROP_SPEED := 7.0          # soft, low, just over the net
+const DROP_LAUNCH := 3.0
+const DROP_DEPTH := 2.0
+const SHOT_STICK_DEADZONE := 0.5
 const SHOT_LAUNCH := 7.0
 const AIM_MAX_X := HALF_WIDTH - 1.0
 const TARGET_DEPTH := HALF_LENGTH - 3.0
@@ -187,10 +194,22 @@ func _try_hit(i: int, input) -> bool:
 		return false
 	var serving: bool = not ball.in_play
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
-	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
+	var depth := TARGET_DEPTH
 	var speed := lerpf(SHOT_SPEED_MIN, SHOT_SPEED_MAX, p.charge)
+	var launch := SHOT_LAUNCH
+	var toward_own_baseline: bool = signf(input.move.y) == float(p.side) and absf(input.move.y) > SHOT_STICK_DEADZONE
+	var toward_net: bool = signf(input.move.y) == -float(p.side) and absf(input.move.y) > SHOT_STICK_DEADZONE
+	if toward_own_baseline:        # lob
+		depth = LOB_DEPTH
+		speed = LOB_SPEED
+		launch = LOB_LAUNCH
+	elif toward_net:               # drop shot
+		depth = DROP_DEPTH
+		speed = DROP_SPEED
+		launch = DROP_LAUNCH
+	var target := Vector2(aim_x, -p.side * depth)
 	ball.vel = (target - ball.pos).normalized() * speed
-	ball.v_height = SHOT_LAUNCH
+	ball.v_height = launch
 	ball.height = maxf(ball.height, 0.3)
 	ball.bounce_count = 0
 	ball.in_play = true
