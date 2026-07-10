@@ -8,6 +8,15 @@ func _serve_tap(sim) -> void:
 	f.hit_pressed = true
 	sim.tick([f, InputFrame.new()])
 
+func _rally_ball(sim) -> void:
+	sim.last_hitter = 1
+	sim.is_serve = false
+	sim.ball.in_play = true
+	sim.ball.pos = Vector2(0, -9)
+	sim.ball.vel = Vector2(0, -6)
+	sim.ball.height = 1.0
+	sim.players[0].pos = Vector2(0, -9)
+
 func test_meter_fills_on_hit() -> void:
 	var sim := CourtSim.new()
 	_serve_tap(sim)
@@ -21,35 +30,27 @@ func test_meter_persists_across_points() -> void:
 
 func test_special_needs_full_meter_and_full_charge() -> void:
 	var weak := CourtSim.new()
+	_rally_ball(weak)
 	weak.meter[0] = 1.0
-	var tap := InputFrame.new()
-	tap.hit_pressed = true
-	weak.tick([tap, InputFrame.new()])
-	check(weak.ball.swerve == 0.0, "a tap must not spend the special even with a full meter")
+	weak.players[0].charge = 0.0
+	weak._try_hit(0, InputFrame.new())
+	check(weak.ball.swerve == 0.0, "an uncharged shot must not fire the special even with a full meter")
 	check(weak.meter[0] == 1.0, "meter must not drain without a special")
 
 	var strong := CourtSim.new()
+	_rally_ball(strong)
 	strong.meter[0] = 1.0
-	for i in 45:
-		var h := InputFrame.new()
-		h.hit_held = true
-		strong.tick([h, InputFrame.new()])
-	var rel := InputFrame.new()
-	rel.hit_pressed = true
-	strong.tick([rel, InputFrame.new()])
-	check(strong.ball.swerve != 0.0, "a full-charge swing on a full meter must fire a swerving special")
+	strong.players[0].charge = 1.0
+	strong._try_hit(0, InputFrame.new())
+	check(strong.ball.swerve != 0.0, "a full-charge shot on a full meter must fire a swerving special")
 	check(strong.meter[0] == 0.0, "the special must drain the meter")
 
 func test_special_ball_curves() -> void:
 	var sim := CourtSim.new()
+	_rally_ball(sim)
 	sim.meter[0] = 1.0
-	for i in 45:
-		var h := InputFrame.new()
-		h.hit_held = true
-		sim.tick([h, InputFrame.new()])
-	var rel := InputFrame.new()
-	rel.hit_pressed = true
-	sim.tick([rel, InputFrame.new()])
+	sim.players[0].charge = 1.0
+	sim._try_hit(0, InputFrame.new())
 	var vx0: float = sim.ball.vel.x
 	for i in 10:
 		sim.tick([InputFrame.new(), InputFrame.new()])

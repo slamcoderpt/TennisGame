@@ -8,6 +8,15 @@ func _held() -> InputFrame:
 	f.hit_held = true
 	return f
 
+func _rally_ball(sim) -> void:
+	sim.last_hitter = 1
+	sim.is_serve = false
+	sim.ball.in_play = true
+	sim.ball.pos = Vector2(0, -9)
+	sim.ball.vel = Vector2(0, -6)
+	sim.ball.height = 1.0
+	sim.players[0].pos = Vector2(0, -9)
+
 func test_charge_builds_while_held() -> void:
 	var sim := CourtSim.new()
 	for i in 20:
@@ -25,20 +34,18 @@ func test_charge_locks_movement() -> void:
 
 func test_charged_shot_faster_than_tap() -> void:
 	var tap := CourtSim.new()
-	var t := InputFrame.new()
-	t.hit_pressed = true
-	tap.tick([t, InputFrame.new()])
+	_rally_ball(tap)
+	tap.players[0].charge = 0.0
+	tap._try_hit(0, InputFrame.new())
 	var tap_speed: float = tap.ball.vel.length()
 
 	var chg := CourtSim.new()
-	for i in 45:
-		chg.tick([_held(), InputFrame.new()])
-	var rel := InputFrame.new()
-	rel.hit_pressed = true
-	chg.tick([rel, InputFrame.new()])
+	_rally_ball(chg)
+	chg.players[0].charge = 1.0
+	chg._try_hit(0, InputFrame.new())
 	var chg_speed: float = chg.ball.vel.length()
 
-	check(chg_speed > tap_speed + 1.0, "a charged shot must leave faster than a tap")
+	check(chg_speed > tap_speed + 1.0, "a full-charge rally shot must leave faster than a tap")
 
 func test_charge_resets_after_shot() -> void:
 	var sim := CourtSim.new()
