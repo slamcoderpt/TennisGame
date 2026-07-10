@@ -31,7 +31,17 @@ const SHOT_LAUNCH := 7.0
 const AIM_MAX_X := HALF_WIDTH - 1.0
 const TARGET_DEPTH := HALF_LENGTH - 3.0
 const SERVE_DEPTH := 8.0
-const SERVE_HEIGHT := 1.2
+const SERVE_HEIGHT := 0.4        # low "in-hand" rest height before the toss
+const SERVE_X := 1.5             # deuce/ad offset; small enough that a center server still reaches it
+const TOSS_VELOCITY := 9.0       # upward toss speed (~0.8s airtime, apex ~2.2 units above rest)
+const IDEAL_CONTACT_HEIGHT := 2.2  # best timing sits at the toss apex
+const CONTACT_WINDOW := 1.8      # generous timing window around the ideal contact height
+const MIN_CONTACT_HEIGHT := 0.5  # releasing below this while tossing = whiffed serve = fault
+const SERVE_SPEED_MIN := 14.0
+const SERVE_SPEED_MAX := 22.0
+const SERVE_LAUNCH := 7.0        # upward velocity imparted to the served ball
+const SERVE_TAP_QUALITY := 0.5   # a no-toss tap serves at this default quality
+const SERVE_AIM_NUDGE := 1.0     # how far the stick can shift the cross-court serve target
 const POINT_PAUSE_TICKS := 45   # short freeze after a point so the result reads
 const METER_PER_HIT := 0.12     # meter gained by the hitter each swing
 const METER_PER_POINT := 0.25   # meter gained by the winner of a point
@@ -44,6 +54,7 @@ var score := MatchScore.new()
 var server := 0                 # player index serving the current game
 var serve_faults := 0
 var is_serve := false           # true from the serve hit until its first legal bounce
+var is_tossing := false         # true while the served ball is airborne from the toss, pre-contact
 var last_hitter := -1           # -1 = nobody has hit since the last reset
 var pause_ticks := 0
 var last_event := ""            # transient HUD message ("FAULT", "OUT!", ...)
@@ -61,7 +72,10 @@ func _init() -> void:
 	reset_for_serve()
 
 func reset_for_serve() -> void:
-	ball.pos = Vector2(0.0, SERVE_DEPTH * float(players[server].side))
+	var s := int(players[server].side)
+	var ad: bool = (score.points[0] + score.points[1]) % 2 == 1
+	var serve_x := SERVE_X * (float(s) if ad else -float(s))
+	ball.pos = Vector2(serve_x, SERVE_DEPTH * float(s))
 	ball.prev_pos = ball.pos
 	ball.height = SERVE_HEIGHT
 	ball.prev_height = SERVE_HEIGHT
@@ -72,6 +86,7 @@ func reset_for_serve() -> void:
 	ball.swerve = 0.0
 	last_hitter = -1
 	is_serve = false
+	is_tossing = false
 	for p in players:
 		p.hit_buffer = 0
 
