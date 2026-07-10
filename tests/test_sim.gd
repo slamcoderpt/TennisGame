@@ -65,3 +65,39 @@ func test_diagonal_not_faster() -> void:
 	sim.tick(frames)
 	var moved: float = sim.players[0].pos.distance_to(Vector2(0, -9))
 	check(absf(moved - CourtSim.PLAYER_SPEED * CourtSim.TICK) < 0.001, "diagonal speed must equal straight speed")
+
+func test_serve_hit_sends_ball_to_far_side() -> void:
+	var sim := CourtSim.new()
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	sim.tick(frames)
+	check(sim.ball.in_play, "hit should put ball in play")
+	check(sim.ball.vel.y > 0.0, "ball should travel toward the far side")
+	check(sim.ball.v_height > 0.0, "shot should launch upward")
+	_tick_n(sim, 90)
+	check(sim.ball.pos.y > 0.0, "ball should cross the net line within 1.5s")
+
+func test_cannot_hit_out_of_reach() -> void:
+	var sim := CourtSim.new()
+	sim.players[0].pos = Vector2(3.5, -11.0)
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	sim.tick(frames)
+	check(not sim.ball.in_play, "out-of-reach hit must do nothing")
+
+func test_cannot_hit_own_outgoing_ball() -> void:
+	var sim := CourtSim.new()
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	sim.tick(frames)
+	var vel_after_serve: Vector2 = sim.ball.vel
+	sim.tick(frames)
+	check(sim.ball.vel == vel_after_serve, "own outgoing ball must not be re-hit")
+
+func test_aim_follows_stick() -> void:
+	var sim := CourtSim.new()
+	var frames := _idle()
+	frames[0].hit_pressed = true
+	frames[0].move = Vector2(-1, 0)
+	sim.tick(frames)
+	check(sim.ball.vel.x < 0.0, "stick held left should aim the shot left")
