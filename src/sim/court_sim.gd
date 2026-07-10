@@ -9,6 +9,7 @@ const HALF_WIDTH := 4.0
 const HALF_LENGTH := 12.0
 const OUT_MARGIN := 4.0
 const NET_HEIGHT := 1.0
+const NET_REBOUND := 0.25       # how much of vel.y survives a net hit, reversed
 const GRAVITY := 22.0
 const RESTITUTION := 0.75
 const MAX_BOUNCES := 4
@@ -90,10 +91,22 @@ func _move_player(p, input) -> void:
 	else:
 		p.pos.y = clampf(p.pos.y, 0.5, HALF_LENGTH)
 
+func _check_net(prev_y: float) -> void:
+	if ball.height >= NET_HEIGHT:
+		return
+	if signf(prev_y) == signf(ball.pos.y):
+		return
+	# blocked: stay on the incoming side and drop
+	ball.pos.y = signf(prev_y) * 0.1
+	ball.vel.y = -ball.vel.y * NET_REBOUND
+	ball.vel.x *= 0.5
+
 func _update_ball() -> void:
 	if not ball.in_play:
 		return
+	var prev_y := ball.pos.y
 	ball.pos += ball.vel * TICK
+	_check_net(prev_y)
 	ball.v_height -= GRAVITY * TICK
 	ball.height += ball.v_height * TICK
 	if ball.height <= 0.0 and ball.v_height < 0.0:

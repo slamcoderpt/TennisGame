@@ -96,3 +96,18 @@ func test_match_over_freezes_sim() -> void:
 	var before: Vector2 = sim.players[0].pos
 	sim.tick(frames)
 	check(sim.players[0].pos == before, "sim must freeze after the match ends")
+
+func test_net_blocks_low_ball() -> void:
+	var sim := CourtSim.new()
+	_rally_ball(sim, Vector2(0, -1), Vector2(0, 20), 0.4, 2.0)
+	_tick_n(sim, 6)
+	check(sim.ball.pos.y < 0.0, "low ball must be blocked by the net")
+	check(sim.ball.vel.y < 0.0, "blocked ball must rebound")
+	_tick_n(sim, 120)
+	check(sim.score.points[1] == 1, "netted ball must cost the hitter the point")
+
+func test_high_ball_clears_net() -> void:
+	var sim := CourtSim.new()
+	_rally_ball(sim, Vector2(0, -1), Vector2(0, 20), 2.0)
+	_tick_n(sim, 6)
+	check(sim.ball.pos.y > 0.0, "high ball must pass over the net")
