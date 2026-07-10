@@ -30,7 +30,6 @@ const SHOT_STICK_DEADZONE := 0.5
 const SHOT_LAUNCH := 7.0
 const AIM_MAX_X := HALF_WIDTH - 1.0
 const TARGET_DEPTH := HALF_LENGTH - 3.0
-const SERVE_DEPTH := 8.0
 const SERVE_HEIGHT := 0.4        # low "in-hand" rest height before the toss
 const TOSS_VELOCITY := 9.0       # upward toss speed (~0.8s airtime, apex ~2.2 units above rest)
 const IDEAL_CONTACT_HEIGHT := 2.2  # best timing sits at the toss apex
