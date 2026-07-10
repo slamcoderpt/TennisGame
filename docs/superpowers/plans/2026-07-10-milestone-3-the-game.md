@@ -694,11 +694,15 @@ const InputFrame := preload("res://src/sim/input_frame.gd")
 func test_hit_count_increments_on_each_swing() -> void:
 	var sim := CourtSim.new()
 	check(sim.hit_count == 0, "hit_count starts at zero")
-	var f := InputFrame.new()
-	f.hit_pressed = true
-	sim.tick([f, InputFrame.new()])
+	var held := InputFrame.new()
+	held.hit_held = true
+	for i in 10:
+		sim.tick([held, InputFrame.new()])       # build some charge first
+	var rel := InputFrame.new()
+	rel.hit_pressed = true
+	sim.tick([rel, InputFrame.new()])            # release fires the swing
 	check(sim.hit_count == 1, "a swing must increment hit_count")
-	check(sim.hit_strength > 0.0, "hit_strength must record the shot power")
+	check(sim.hit_strength > 0.0, "hit_strength must record the (charged) shot power")
 ```
 
 Update `tests/run_tests.gd` to append `"res://tests/test_feel.gd"`.
