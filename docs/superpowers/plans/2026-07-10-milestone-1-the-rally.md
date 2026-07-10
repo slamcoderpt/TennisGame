@@ -13,7 +13,9 @@
 ## Context for the engineer
 
 - **Working directory for every command:** `C:\1.projetos\godotgames\arcadetennis` (the git repo root; `project.godot` lives here after Task 1).
-- **Godot binary:** commands below use `godot`. If it's not on PATH, use the full path to the Godot 4 executable (e.g. `& "C:\Program Files\Godot\Godot_v4.x-stable_win64.exe"`). Verify once with `godot --version` — must print `4.x`.
+- **Godot binary:** `godot` is NOT on this machine's PATH (winget installed it without admin, so the command alias was not created). Wherever a command below shows `godot`, invoke the full path with the PowerShell call operator instead:
+  `& "C:\Users\CarlosAlmeida\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7-stable_win64.exe"`
+  Installed version is 4.7-stable (verified). Example: `& "C:\Users\...\Godot_v4.7-stable_win64.exe" --headless --path . -s res://tests/run_tests.gd`.
 - **GDScript uses TAB indentation.** Mixed tabs/spaces is a parse error. All `.gd` code blocks in this plan are tab-indented — preserve that.
 - **Court-space conventions (memorize):** `x` ∈ [-4, 4] left/right, `y` ∈ [-12, 12] with the human player on the **negative-y** (bottom/near-camera) side, net at `y = 0`, `height` ≥ 0 above the court. `InputFrame.move.y = +1` means "toward the far side" for either player.
 - **Test runner:** `godot --headless --path . -s res://tests/run_tests.gd`. Exit code 0 = all pass. If a test script has a parse error the runner prints `SCRIPT ERROR` lines and/or `FAIL could not load ...` — that counts as the expected "failing" state in TDD steps.
