@@ -102,7 +102,7 @@ func tick(inputs: Array) -> void:
 	for i in 2:
 		var input = inputs[i]
 		if input.hit_held:
-			players[i].charge = minf(1.0, players[i].charge + TICK / CHARGE_TIME)
+			players[i].charge = minf(1.0, players[i].charge + TICK / CHARGE_TIME * players[i].charge_rate)
 		if input.hit_pressed:
 			players[i].hit_buffer = HIT_BUFFER_TICKS
 		if players[i].hit_buffer > 0:
@@ -118,7 +118,7 @@ func _move_player(p, input) -> void:
 	var m: Vector2 = input.move
 	if m.length() > 1.0:
 		m = m.normalized()
-	p.pos += m * PLAYER_SPEED * TICK
+	p.pos += m * PLAYER_SPEED * p.speed * TICK
 	p.pos.x = clampf(p.pos.x, -HALF_WIDTH, HALF_WIDTH)
 	if p.side < 0:
 		p.pos.y = clampf(p.pos.y, -HALF_LENGTH, -0.5)
@@ -228,11 +228,11 @@ func _try_hit(i: int, input) -> bool:
 		return _serve_contact(i, input)
 	if signf(ball.vel.y) != float(p.side):
 		return false               # ball is not incoming toward this player
-	if ball.pos.distance_to(p.pos) > REACH or ball.height > MAX_HIT_HEIGHT:
+	if ball.pos.distance_to(p.pos) > REACH * p.reach or ball.height > MAX_HIT_HEIGHT:
 		return false
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var depth := TARGET_DEPTH
-	var speed := lerpf(SHOT_SPEED_MIN, SHOT_SPEED_MAX, p.charge)
+	var speed: float = lerpf(SHOT_SPEED_MIN, SHOT_SPEED_MAX, p.charge) * p.power
 	var launch := SHOT_LAUNCH
 	var toward_own_baseline: bool = signf(input.move.y) == float(p.side) and absf(input.move.y) > SHOT_STICK_DEADZONE
 	var toward_net: bool = signf(input.move.y) == -float(p.side) and absf(input.move.y) > SHOT_STICK_DEADZONE
@@ -266,7 +266,7 @@ func _try_hit(i: int, input) -> bool:
 
 func _serve_contact(i: int, input) -> bool:
 	var p = players[i]
-	if ball.pos.distance_to(p.pos) > REACH:
+	if ball.pos.distance_to(p.pos) > REACH * p.reach:
 		return false
 	var quality := SERVE_TAP_QUALITY
 	if is_tossing:
@@ -275,7 +275,7 @@ func _serve_contact(i: int, input) -> bool:
 			_serve_fault()
 			return false
 		quality = clampf(1.0 - absf(ball.height - IDEAL_CONTACT_HEIGHT) / CONTACT_WINDOW, 0.0, 1.0)
-	var speed := lerpf(SERVE_SPEED_MIN, SERVE_SPEED_MAX, quality)
+	var speed: float = lerpf(SERVE_SPEED_MIN, SERVE_SPEED_MAX, quality) * p.power
 	var aim_x := clampf(input.move.x, -1.0, 1.0) * AIM_MAX_X
 	var target := Vector2(aim_x, -p.side * TARGET_DEPTH)
 	ball.vel = (target - ball.pos).normalized() * speed

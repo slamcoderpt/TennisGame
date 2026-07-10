@@ -13,6 +13,7 @@ const TEST_SCRIPTS := [
 	"res://tests/test_feel.gd",
 	"res://tests/test_sprite.gd",
 	"res://tests/test_serve.gd",
+	"res://tests/test_stats.gd",
 ]
 
 func _init() -> void:
