@@ -233,7 +233,7 @@ func test_ball_falls_and_bounces() -> void:
 	var start := sim.ball.height
 	_tick_n(sim, 10)
 	check(sim.ball.height < start, "gravity should pull the ball down")
-	_tick_n(sim, 120)
+	_tick_n(sim, 40)
 	check(sim.ball.bounce_count >= 1, "ball should have bounced")
 
 func test_bounce_loses_energy() -> void:
@@ -414,7 +414,7 @@ Notes on the two rules inside `_try_hit`:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `6 passed, 0 failed` (1 smoke + 5 sim), exit code 0.
+Expected: `5 passed, 0 failed` (1 smoke + 4 sim), exit code 0.
 
 - [ ] **Step 5: Commit**
 
@@ -458,7 +458,7 @@ func test_diagonal_not_faster() -> void:
 - [ ] **Step 2: Run tests**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `8 passed, 0 failed`. (Movement shipped inside Task 3's `_move_player`; these tests lock the behavior. If anything fails, fix `_move_player` until green.)
+Expected: `7 passed, 0 failed`. (Movement shipped inside Task 3's `_move_player`; these tests lock the behavior. If anything fails, fix `_move_player` until green.)
 
 - [ ] **Step 3: Commit**
 
@@ -518,7 +518,7 @@ func test_aim_follows_stick() -> void:
 - [ ] **Step 2: Run tests**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `12 passed, 0 failed`. (Hitting shipped in Task 3's `_try_hit`; fix it if any of these fail.)
+Expected: `11 passed, 0 failed`. (Hitting shipped in Task 3's `_try_hit`; fix it if any of these fail.)
 
 - [ ] **Step 3: Commit**
 
@@ -559,7 +559,7 @@ func test_determinism() -> void:
 - [ ] **Step 2: Run tests**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `13 passed, 0 failed`. This test is the future-multiplayer canary: it must stay green forever. If it fails, someone introduced randomness or Node/time dependence into the sim.
+Expected: `12 passed, 0 failed`. This test is the future-multiplayer canary: it must stay green forever. If it fails, someone introduced randomness or Node/time dependence into the sim.
 
 - [ ] **Step 3: Commit**
 
@@ -653,7 +653,7 @@ static func to_screen(court_pos: Vector2, height := 0.0) -> Vector2:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `17 passed, 0 failed`.
+Expected: `16 passed, 0 failed`.
 
 - [ ] **Step 5: Commit**
 
@@ -798,7 +798,7 @@ func _process(_delta: float) -> void:
 - [ ] **Step 4: Verify headless tests still pass, then check visually**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `17 passed, 0 failed`.
+Expected: `16 passed, 0 failed`.
 
 Run (windowed): `godot --path .`
 Expected: green trapezoid court, blue rectangle at the bottom, red rectangle at the top, yellow ball hovering near the blue player. Arrows move the blue player (clamped to the bottom half); walking to the ball and pressing Space launches it in an arc toward the far side with a moving shadow; the far player never moves (AI comes next). Ball resets near you after it dies.
@@ -890,7 +890,7 @@ func frame(sim) -> InputFrame:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `18 passed, 0 failed`.
+Expected: `17 passed, 0 failed`.
 
 - [ ] **Step 5: Wire the AI into the match**
 
@@ -985,7 +985,7 @@ func _draw() -> void:
 - [ ] **Step 2: Verify tests still pass**
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `18 passed, 0 failed` (input layer is untested by design — it's thin and device-dependent).
+Expected: `17 passed, 0 failed` (input layer is untested by design — it's thin and device-dependent).
 
 - [ ] **Step 3: Manual check with mouse-as-touch**
 
@@ -1013,7 +1013,7 @@ git commit -m "feat: floating touch joystick and right-half hit zone"
 Run: `godot --path .` and play for a few minutes. The milestone goal is **"hitting feels good"**. Tune only constants (never logic): `PLAYER_SPEED` if movement feels sluggish, `SHOT_SPEED`/`SHOT_LAUNCH` if shots feel floaty or don't clear the net visually, `REACH` if hits feel unfair, projection `NEAR_SCALE`/`FAR_SCALE` if the court reads poorly. After any change:
 
 Run: `godot --headless --path . -s res://tests/run_tests.gd`
-Expected: `18 passed, 0 failed` — the tests assert behavior, not exact numbers, so reasonable tuning stays green.
+Expected: `17 passed, 0 failed` — the tests assert behavior, not exact numbers, so reasonable tuning stays green.
 
 - [ ] **Step 2: Write `README.md`**
 
