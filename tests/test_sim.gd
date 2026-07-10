@@ -79,11 +79,18 @@ func test_serve_hit_sends_ball_to_far_side() -> void:
 
 func test_cannot_hit_out_of_reach() -> void:
 	var sim := CourtSim.new()
-	sim.players[0].pos = Vector2(3.5, -11.0)
+	# an in-play rally ball far from the player must not be returnable
+	sim.last_hitter = 1
+	sim.is_serve = false
+	sim.ball.in_play = true
+	sim.ball.pos = Vector2(3.5, 5.0)
+	sim.ball.vel = Vector2(0, -6)
+	sim.ball.height = 1.0
+	sim.players[0].pos = Vector2(-3.5, -11.0)
 	var frames := _idle()
 	frames[0].hit_pressed = true
 	sim.tick(frames)
-	check(not sim.ball.in_play, "out-of-reach hit must do nothing")
+	check(sim.ball.vel.y < 0.0, "an out-of-reach rally ball must not be returned")
 
 func test_cannot_hit_own_outgoing_ball() -> void:
 	var sim := CourtSim.new()
