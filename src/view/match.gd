@@ -5,6 +5,7 @@ const CourtView := preload("res://src/view/court_view.gd")
 const Hud := preload("res://src/view/hud.gd")
 const PlayerInput := preload("res://src/input/player_input.gd")
 const WallAI := preload("res://src/ai/wall_ai.gd")
+const Roster := preload("res://src/data/roster.gd")
 
 const SHAKE_DECAY := 0.6         # shake magnitude removed per rendered frame
 
@@ -13,6 +14,8 @@ var view: Node2D
 var hud: Node2D
 var player_input: Node2D
 var ai := WallAI.new()
+var player_character := "allrounder"     # the single seam the character-select screen will feed
+var opponent_character := "allrounder"
 
 var _seen_hits := 0
 var _pause_frames := 0
@@ -25,6 +28,7 @@ func _ready() -> void:
 	add_child(hud)
 	player_input = PlayerInput.new()
 	add_child(player_input)
+	_apply_characters()
 
 func _physics_process(_delta: float) -> void:
 	var frame = player_input.consume_frame()
@@ -43,9 +47,14 @@ func _physics_process(_delta: float) -> void:
 
 func _restart() -> void:
 	sim = CourtSim.new()
+	_apply_characters()
 	_seen_hits = 0
 	_pause_frames = 0
 	_shake = 0.0
+
+func _apply_characters() -> void:
+	Roster.apply_to(sim.players[0], Roster.by_id(player_character))
+	Roster.apply_to(sim.players[1], Roster.by_id(opponent_character))
 
 func _process(_delta: float) -> void:
 	if _shake > 0.0:
