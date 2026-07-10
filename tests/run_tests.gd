@@ -1,0 +1,29 @@
+extends SceneTree
+
+const TEST_SCRIPTS := [
+	"res://tests/test_smoke.gd",
+]
+
+func _init() -> void:
+	var passed := 0
+	var failed := 0
+	for path in TEST_SCRIPTS:
+		var script = load(path)
+		if script == null:
+			print("FAIL could not load %s" % path)
+			failed += 1
+			continue
+		var test = script.new()
+		for m in test.get_method_list():
+			if not m.name.begins_with("test_"):
+				continue
+			test.failures.clear()
+			test.call(m.name)
+			if test.failures.is_empty():
+				passed += 1
+			else:
+				failed += 1
+				for msg in test.failures:
+					print("FAIL %s.%s: %s" % [path.get_file(), m.name, msg])
+	print("%d passed, %d failed" % [passed, failed])
+	quit(1 if failed > 0 else 0)
