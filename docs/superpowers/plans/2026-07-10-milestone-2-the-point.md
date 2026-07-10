@@ -212,11 +212,16 @@ func test_receiver_must_let_serve_bounce() -> void:
 	frames[0].hit_pressed = true
 	frames[1].hit_pressed = true
 	sim.tick(frames)
+	check(sim.is_serve, "player 0 should have served")
 	var pressing := _idle()
 	pressing[1].hit_pressed = true
+	# While the serve is still airborne (is_serve true) the receiver mashes hit;
+	# the ball must keep travelling toward the far side (never returned). We stop
+	# the moment the serve's first bounce clears is_serve — a same-tick legal
+	# return there is fine, so bounce_count can't be used as the stop signal.
 	for i in 200:
 		sim.tick(pressing)
-		if sim.ball.bounce_count >= 1:
+		if not sim.is_serve:
 			break
 		check(sim.ball.vel.y > 0.0, "serve must not be returnable before it bounces")
 
