@@ -6,6 +6,7 @@ const TEST_SCRIPTS := [
 	"res://tests/test_projection.gd",
 	"res://tests/test_ai.gd",
 	"res://tests/test_score.gd",
+	"res://tests/test_rules.gd",
 ]
 
 func _init() -> void:
