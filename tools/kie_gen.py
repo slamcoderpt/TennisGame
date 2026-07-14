@@ -114,7 +114,7 @@ def main() -> None:
     img = sub.add_parser("image", help="text-to-image")
     img.add_argument("--prompt", required=True)
     img.add_argument("--out", required=True)
-    img.add_argument("--model", default="nano-banana-pro")
+    img.add_argument("--model", default="gpt-image-2-text-to-image")
     img.add_argument("--aspect", default="16:9")
     img.add_argument("--resolution", default="2K")
     img.set_defaults(func=cmd_image)
