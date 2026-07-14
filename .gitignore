@@ -1,3 +1,6 @@
 ﻿.superpowers/
 .godot/
 *.uid
+secrets/
+!secrets/README.md
+*.key
