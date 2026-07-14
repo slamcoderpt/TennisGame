@@ -89,7 +89,10 @@ def poll(key: str, task_id: str, timeout_s: int = 300) -> list[str]:
 
 def download(url: str, out_path: str) -> None:
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
-    urllib.request.urlretrieve(url, out_path)
+    # The result CDN 403s the default urllib UA, so send a browser-like one.
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=120) as resp, open(out_path, "wb") as f:
+        f.write(resp.read())
     print("  saved -> %s" % out_path)
 
 
@@ -108,6 +111,19 @@ def cmd_image(args) -> None:
             download(u, "%s_%d%s" % (base, i + 1, ext))
 
 
+def cmd_fetch(args) -> None:
+    # Download the result of an already-finished task (no new credits spent).
+    key = load_key()
+    print("Fetching task %s..." % args.task)
+    urls = poll(key, args.task, timeout_s=120)
+    if len(urls) == 1:
+        download(urls[0], args.out)
+    else:
+        base, ext = os.path.splitext(args.out)
+        for i, u in enumerate(urls):
+            download(u, "%s_%d%s" % (base, i + 1, ext))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="kie.ai asset generator")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -118,6 +134,10 @@ def main() -> None:
     img.add_argument("--aspect", default="16:9")
     img.add_argument("--resolution", default="2K")
     img.set_defaults(func=cmd_image)
+    fet = sub.add_parser("fetch", help="download an already-finished task by id")
+    fet.add_argument("--task", required=True)
+    fet.add_argument("--out", required=True)
+    fet.set_defaults(func=cmd_fetch)
     args = ap.parse_args()
     args.func(args)
 
